@@ -3,11 +3,14 @@ import os
 import time
 from datetime import datetime, timezone
 from hashlib import blake2s
-from typing import Callable, Generator, Iterable, Iterator, List, Optional, Tuple
+from typing import Callable, Iterator, List, Optional, Tuple
 
 import msgpack
 
 from dqp.storage import Folder
+
+
+QUEUE_FILE_HASH_SEPARATOR = "_"
 
 
 class Sink:
@@ -59,7 +62,10 @@ class Sink:
         if self.output_index > 0:
             # finalize file, rename with .hash at the end.
             os.rename(
-                self.output_path, self.output_path + "_" + self.output_hash.hexdigest()
+                self.output_path,
+                self.output_path
+                + QUEUE_FILE_HASH_SEPARATOR
+                + self.output_hash.hexdigest(),
             )
         else:
             # Drop empty files
@@ -96,13 +102,13 @@ class Source:
         return self.all_dict()
 
     def from_dict(
-        self, queue_filename: str, idx: int = 0
+        self, queue_filename_prefix: str, idx: int = 0
     ) -> Iterator[Tuple[str, int, dict]]:
         """
         Start from a given position in the queues and continue
         """
         queue_iter = itertools.dropwhile(
-            lambda fname: fname != queue_filename, self.queue_filenames()
+            lambda fname: not fname.startswith(queue_filename_prefix), self.queue_filenames()
         )
         return itertools.dropwhile(
             lambda el: el[1] < idx,
@@ -121,7 +127,7 @@ class Source:
             idx = 0
             for msg in msgpack.Unpacker(queue_file):
                 yield filename, idx, msg
-                self.last = filename, idx
+                self.last = filename.rsplit(QUEUE_FILE_HASH_SEPARATOR, 1)[0], idx
                 idx = idx + 1
 
 
