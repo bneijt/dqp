@@ -1,8 +1,13 @@
 [tool.poetry]
 name = "dqp"
 version = "0.0.1"
-description = ""
+description = "A simple library to process a list of messages from disk"
 authors = ["Bram Neijt <bram@neijt.nl>"]
+readme = "README.md"
+repository = "https://github.com/bneijt/dqp"
+classifiers = [
+    "Intended Audience :: Developers"
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -10,6 +15,10 @@ msgpack = "^1.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
+black = "^21.5b1"
+rope = "^0.18.0"
+twine = "^3.4.1"
+pre-commit = "^2.12.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
