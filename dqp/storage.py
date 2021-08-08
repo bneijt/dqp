@@ -1,6 +1,7 @@
-import msgpack
 import os
 from typing import Dict
+
+import msgpack
 
 VARS_FILENAME = "vars.msgpack"
 

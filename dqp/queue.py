@@ -1,12 +1,13 @@
-import time
-import os
-from datetime import timezone, datetime
-from typing import Generator, Iterable, Iterator, Tuple
-import msgpack
-from hashlib import blake2s
 import itertools
+import os
+import time
+from datetime import datetime, timezone
+from hashlib import blake2s
+from typing import Callable, Generator, Iterable, Iterator, List, Optional, Tuple
+
+import msgpack
+
 from dqp.storage import Folder
-from typing import List, Callable, Optional
 
 
 class Sink:
