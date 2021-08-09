@@ -9,7 +9,6 @@ import msgpack
 
 from dqp.storage import Folder
 
-
 QUEUE_FILE_HASH_SEPARATOR = "_"
 
 
@@ -108,7 +107,8 @@ class Source:
         Start from a given position in the queues and continue
         """
         queue_iter = itertools.dropwhile(
-            lambda fname: not fname.startswith(queue_filename_prefix), self.queue_filenames()
+            lambda fname: not fname.startswith(queue_filename_prefix),
+            self.queue_filenames(),
         )
         return itertools.dropwhile(
             lambda el: el[1] < idx,
