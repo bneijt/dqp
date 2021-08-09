@@ -88,6 +88,7 @@ class Source:
         """
         self.input_path = input_path
         self.starting_from = starting_from
+        self.last = None  # type: Optional[Tuple[str, int]]
 
     def all_dict(self) -> Iterator[Tuple[str, int, dict]]:
         """iterator for all of the elements in the queue (ignoring starting_from if given)"""
@@ -152,8 +153,9 @@ class Project:
         )
 
         def store_last():
-            self.storage_folder.vars[name + "_last_filename"] = src.last[0]
-            self.storage_folder.vars[name + "_last_idx"] = str(src.last[1])
+            if src.last:
+                self.storage_folder.vars[name + "_last_filename"] = src.last[0]
+                self.storage_folder.vars[name + "_last_idx"] = str(src.last[1])
 
         self.closeables.append(store_last)
         return src
