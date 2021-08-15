@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from dqp.queue import Sink, Source
+from dqp.queue import Sink, Source, Project
 
 
 def test_all_dict():
@@ -17,12 +17,12 @@ def test_all_dict():
         assert b_element[2] == {"b": 2}, "Second element should be the 'b' element"
         assert len(list(s.all_dict())) == 3, "Should have 3 elements on disk"
         assert (
-            len(list(s.from_dict(b_element[0], 0))) == 3
+            len(list(s.all_dict_from(b_element[0], 0))) == 3
         ), "Should have 3 elements if we iterate from index 0"
         assert b_element[1] == 1, "B should be the second element in the queue"
-        assert next(s.from_dict(b_element[0], b_element[1]))[2] == {"b": 2}
+        assert next(s.all_dict_from(b_element[0], b_element[1]))[2] == {"b": 2}
         assert (
-            len(list(s.from_dict(b_element[0], 3))) == 0
+            len(list(s.all_dict_from(b_element[0], 3))) == 0
         ), "Should be empty after last element"
 
 
@@ -50,3 +50,26 @@ def test_last_should_be_relative():
         s.unlink_to(s.last[0])
 
         assert len(list(s.all_dict())) == 2, "Must have only the last block"
+
+
+def test_continue_source():
+    with TemporaryDirectory() as project_dir:
+
+        with Project(project_dir) as project:
+            s = project.open_sink("hello")
+            s.write_dict({"a": 1})
+            s.write_dict({"b": 1})
+            s.write_dict({"c": 1})
+            s.write_dict({"d": 1})
+
+        with Project(project_dir) as project:
+            s = project.continue_source("hello")
+            for filename, index, msg in s:
+                assert msg == {"a": 1}
+                break
+
+        with Project(project_dir) as project:
+            s = project.continue_source("hello")
+            for filename, index, msg in s:
+                assert msg == {"b": 1}
+                break

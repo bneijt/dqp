@@ -99,10 +99,10 @@ class Source:
 
     def __iter__(self):
         if self.starting_from is not None:
-            return self.from_dict(self.starting_from[0], self.starting_from[1])
+            return self.all_dict_from(self.starting_from[0], self.starting_from[1])
         return self.all_dict()
 
-    def from_dict(
+    def all_dict_from(
         self, queue_filename_prefix: str, idx: int = 0
     ) -> Iterator[Tuple[str, int, dict]]:
         """
@@ -117,8 +117,15 @@ class Source:
             itertools.chain.from_iterable(map(self.dicts_from, queue_iter)),
         )
 
-    def unlink_to(self, queue_filename_prefix) -> None:
-        """Unlink queue files up to (not including) the given file name prefix"""
+    def unlink_to(self, queue_filename_prefix: Optional[str] = None) -> None:
+        """Unlink queue files up to (not including) the given file name prefix or self.last if queue_filename_prefix is None"""
+        if queue_filename_prefix is None and self.last is not None:
+            queue_filename_prefix = self.last[0]
+        if queue_filename_prefix is None:
+            raise ValueError(
+                f"Could not unlink to unknown prefix '{queue_filename_prefix}'"
+            )
+
         found = next(
             (
                 queue_filename
@@ -150,8 +157,8 @@ class Source:
         with open(abs_path, "rb") as queue_file:
             idx = 0
             for msg in msgpack.Unpacker(queue_file):
-                yield filename, idx, msg
                 self.last = filename, idx
+                yield filename, idx, msg
                 idx = idx + 1
 
 
@@ -177,7 +184,7 @@ class Project:
         )
 
         def store_last():
-            if src.last:
+            if src.last is not None:
                 self.storage_folder.vars[
                     f"{self.vars_prefix}{name}_last_filename"
                 ] = src.last[0]

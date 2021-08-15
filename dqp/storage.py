@@ -7,7 +7,8 @@ VARS_FILENAME = "vars.msgpack"
 
 
 class Folder:
-    """Class to help manage a folder structure with state,
+    """
+    Class to help manage a folder structure with state,
     including a default vars object for state.
     """
 
