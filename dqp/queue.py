@@ -86,7 +86,8 @@ class Source:
         """
         Read source at input_path starting from optional starting_from.
         """
-        self.input_path = input_path
+        self.input_path = input_path.rstrip("/")
+        assert self.input_path, "input path was empty after stripping the last /"
         self.starting_from = starting_from
         self.last = None  # type: Optional[Tuple[str, int]]
 
@@ -116,28 +117,59 @@ class Source:
             itertools.chain.from_iterable(map(self.dicts_from, queue_iter)),
         )
 
+    def unlink_to(self, queue_filename_prefix) -> None:
+        """Unlink queue files up to (not including) the given file name prefix"""
+        for queue_filename in self.queue_filenames():
+            if queue_filename.startswith(queue_filename_prefix):
+                break
+            os.unlink(queue_filename)
+
     def queue_filenames(self) -> Iterator[str]:
+        input_path_len = len(self.input_path) + 1  # path + slash character
         for root, dirnames, filenames in os.walk(self.input_path):
             dirnames.sort()
             filenames.sort()
             for filename in filenames:
-                yield os.path.join(root, filename)
+                yield os.path.join(root, filename)[input_path_len:]
 
     def dicts_from(self, filename: str) -> Iterator[Tuple[str, int, dict]]:
-        with open(filename, "rb") as queue_file:
+        abs_path = os.path.join(self.input_path, filename)
+        with open(abs_path, "rb") as queue_file:
             idx = 0
             for msg in msgpack.Unpacker(queue_file):
                 yield filename, idx, msg
-                self.last = filename.rsplit(QUEUE_FILE_HASH_SEPARATOR, 1)[0], idx
+                self.last = filename, idx
                 idx = idx + 1
+
+
+def relative_non_hash_file(base_path: str, filename: str) -> str:
+    """
+    Returns a relative queue file name without the trailing hash
+    """
+
+    def strip_slash(path: str) -> str:
+        return path.strip("/")
+
+    def remove_checksum(path: str) -> str:
+        return path.rsplit(QUEUE_FILE_HASH_SEPARATOR, 1)[0]
+
+    abs_base_path = os.path.abspath(base_path)
+    abs_base_path_len = len(abs_base_path)
+    abs_filename = os.path.abspath(filename)
+    if not abs_filename.startswith(abs_base_path):
+        raise ValueError(
+            f"Could not determine relative path for '{filename}' base on base path '{base_path}"
+        )
+    return strip_slash(remove_checksum(abs_filename[abs_base_path_len:]))
 
 
 class Project:
     """Management class for a base folder and queues storage conventions"""
 
-    def __init__(self, base_path: str):
+    def __init__(self, base_path: str, vars_prefix: str = ""):
         self.storage_folder = Folder(base_path)
         self.closeables = []  # type: List[Callable[[], None]]
+        self.vars_prefix = vars_prefix + "_" if len(vars_prefix) else vars_prefix
 
     def open_sink(self, name: str) -> Sink:
         sink = Sink(self.storage_folder.child(f"queue/{name}"))
@@ -154,19 +186,25 @@ class Project:
 
         def store_last():
             if src.last:
-                self.storage_folder.vars[name + "_last_filename"] = src.last[0]
-                self.storage_folder.vars[name + "_last_idx"] = str(src.last[1])
+                self.storage_folder.vars[
+                    f"{self.vars_prefix}{name}_last_filename"
+                ] = src.last[0]
+                self.storage_folder.vars[f"{self.vars_prefix}{name}_last_idx"] = str(
+                    src.last[1]
+                )
 
         self.closeables.append(store_last)
         return src
 
     def continue_source(self, name: str) -> Source:
-        last_filename = self.storage_folder.vars.get(name + "_last_filename")
+        last_filename = self.storage_folder.vars.get(
+            f"{self.vars_prefix}{name}_last_filename"
+        )
         starting_from = None
         if last_filename is not None:
             starting_from = (
-                self.storage_folder.vars[name + "_last_filename"],
-                int(self.storage_folder.vars[name + "_last_idx"]) + 1,
+                self.storage_folder.vars[f"{self.vars_prefix}{name}_last_filename"],
+                int(self.storage_folder.vars[f"{self.vars_prefix}{name}_last_idx"]) + 1,
             )
         return self.open_source(name, starting_from)
 

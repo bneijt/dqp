@@ -1,6 +1,6 @@
 from tempfile import TemporaryDirectory
-
-from dqp.queue import Sink, Source
+import pytest
+from dqp.queue import Sink, Source, relative_non_hash_file
 
 
 def test_all_dict():
@@ -21,3 +21,30 @@ def test_all_dict():
         assert (
             len(list(s.from_dict(b_element[0], 3))) == 0
         ), "Should be empty after last element"
+
+
+def test_last_should_be_relative():
+    with TemporaryDirectory() as temp_dir:
+        with Sink(temp_dir) as temp_sink:
+            temp_sink.write_dict({"a": 1})
+            temp_sink.write_dict({"b": 2})
+            temp_sink.write_dict({"c": 3})
+
+        s = Source(temp_dir)
+        for fn in s.queue_filenames():
+            assert not fn.startswith("/"), "Must be relative"
+
+        list(s.all_dict())
+        assert s.last is not None and not s.last[0].startswith(
+            "/"
+        ), "Last path should be relative"
+        assert temp_dir not in s.last[0], "Should not know the temp_dir"
+
+
+def test_relative_non_hash_file():
+    assert relative_non_hash_file("/", "/hello") == "hello"
+    assert relative_non_hash_file("/banana", "/banana/hello") == "hello"
+    assert relative_non_hash_file("/banana/", "/banana/hello") == "hello"
+    assert relative_non_hash_file("/banana", "/banana/hello") == "hello"
+    with pytest.raises(ValueError):
+        relative_non_hash_file("/not_relevant", "/hello") == "hello"
