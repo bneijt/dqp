@@ -88,6 +88,8 @@ class Source:
         """
         self.input_path = input_path.rstrip("/")
         assert self.input_path, "input path was empty after stripping the last /"
+        if not os.path.exists(self.input_path):
+            raise ValueError(f"Source path does not exist: '{self.input_path}'")
         self.starting_from = starting_from
         self.last = None  # type: Optional[Tuple[str, int]]
 
@@ -117,18 +119,16 @@ class Source:
             itertools.chain.from_iterable(map(self.dicts_from, queue_iter)),
         )
 
-    def unlink_to(self, queue_filename_prefix: Optional[str] = None) -> None:
-        """Unlink queue files up to (not including) the given file name prefix or self.last if queue_filename_prefix is None"""
+    def unlink_to(self, queue_filename_prefix: Optional[str] = None) -> int:
+        """Unlink queue files up to (not including) the given file name prefix or self.last if queue_filename_prefix is None.
+        Returns the number of unlinked files
+
+        """
+        unlink_count = 0
+        if queue_filename_prefix is None and self.last is not None:
+            queue_filename_prefix = self.last[0]
         if queue_filename_prefix is None:
-            if self.last is not None:
-                queue_filename_prefix = self.last[0]
-            else:
-                # No known prefix, just return
-                return
-        if queue_filename_prefix is None:
-            raise ValueError(
-                f"Could not unlink to unknown prefix '{queue_filename_prefix}'"
-            )
+            return unlink_count
 
         found = next(
             (
@@ -147,6 +147,8 @@ class Source:
                 break
             abs_path = os.path.join(self.input_path, queue_filename)
             os.unlink(abs_path)
+            unlink_count += 1
+        return unlink_count
 
     def queue_filenames(self) -> Iterator[str]:
         input_path_len = len(self.input_path) + 1  # path + slash character

@@ -23,9 +23,11 @@ class Folder:
         self.create_path("")
         vars_filename = os.path.join(self.path, VARS_FILENAME)
         self.vars = {}  # type: Dict[str, str]
+        self.read_vars_contents = b""
         if os.path.exists(vars_filename):
-            with open(vars_filename, "rb") as env_file:
-                self.vars = msgpack.load(env_file)
+            with open(vars_filename, "rb") as vars_file:
+                self.read_vars_contents = vars_file.read()
+                self.vars = msgpack.loads(self.read_vars_contents)
 
     def __enter__(self):
         return self
@@ -47,5 +49,7 @@ class Folder:
         """
         vars_path = self.child(VARS_FILENAME)
         if len(self.vars) or os.path.exists(vars_path):
-            with open(vars_path, "wb") as vars_file:
-                msgpack.dump(self.vars, vars_file)
+            vars_content = msgpack.dumps(self.vars)
+            if vars_content != self.read_vars_contents:
+                with open(vars_path, "wb") as vars_file:
+                    vars_file.write(vars_content)
