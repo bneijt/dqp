@@ -119,8 +119,12 @@ class Source:
 
     def unlink_to(self, queue_filename_prefix: Optional[str] = None) -> None:
         """Unlink queue files up to (not including) the given file name prefix or self.last if queue_filename_prefix is None"""
-        if queue_filename_prefix is None and self.last is not None:
-            queue_filename_prefix = self.last[0]
+        if queue_filename_prefix is None:
+            if self.last is not None:
+                queue_filename_prefix = self.last[0]
+            else:
+                # No known prefix, just return
+                return
         if queue_filename_prefix is None:
             raise ValueError(
                 f"Could not unlink to unknown prefix '{queue_filename_prefix}'"
