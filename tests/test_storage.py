@@ -6,7 +6,7 @@ from dqp.storage import VARS_FILENAME, Folder
 
 def test_should_not_write_empty_vars_files():
     with TemporaryDirectory() as temp_dir:
-        with Folder(temp_dir) as f:
+        with Folder(temp_dir) as _:
             assert not os.path.exists(temp_dir + "/" + VARS_FILENAME)
         assert not os.path.exists(temp_dir + "/" + VARS_FILENAME)
 

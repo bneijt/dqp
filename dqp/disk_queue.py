@@ -3,7 +3,7 @@ import os
 import time
 from datetime import datetime, timezone
 from hashlib import blake2s
-from typing import Callable, Iterator, List, Optional, Tuple
+from typing import Iterator, Optional, Tuple
 
 import msgpack
 
