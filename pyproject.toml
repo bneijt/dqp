@@ -1,11 +1,16 @@
 [tool.poetry]
 name = "dqp"
 version = "0.0.1"
-description = "Cache iterators to disk"
+description = "Cache iterator values to disk using msgpack"
 authors = ["Bram Neijt <bram@neijt.nl>"]
 readme = "README.md"
+license = "Apache-2.0"
 repository = "https://github.com/bneijt/dqp"
-classifiers = ["Intended Audience :: Developers"]
+homepage = "https://bneijt.github.io/dqp/"
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
