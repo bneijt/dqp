@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from dqp.queue import Project, Sink, Source
+from dqp.disk_queue import Project, Sink, Source
 
 
 def test_all_dict():
@@ -55,7 +55,6 @@ def test_last_should_be_relative():
 
 def test_continue_source():
     with TemporaryDirectory() as project_dir:
-
         with Project(project_dir) as project:
             s = project.open_sink("hello")
             s.write_dict({"a": 1})

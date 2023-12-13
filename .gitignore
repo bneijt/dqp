@@ -1,3 +1,5 @@
 *_cache
 .venv
 __pycache__
+/dist
+/docs

@@ -1,0 +1,50 @@
+---
+# Simple workflow for deploying static content to GitHub Pages
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      POETRY_VIRTUALENVS_IN_PROJECT: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/configure-pages@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: install poetry
+        run: pip install poetry==1.7.0
+      - name: cache venv
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      - run: poetry install
+      - name: run pdoc
+        run: poetry run pdoc --output-directory docs dqp
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: "docs"
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
