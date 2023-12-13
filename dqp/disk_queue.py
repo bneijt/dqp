@@ -161,6 +161,10 @@ class Source:
 
     def unlink_to(self, queue_filename_prefix: Optional[str] = None) -> int:
         """Unlink queue files up to (not including) the given file name prefix or self.last if queue_filename_prefix is None.
+
+        At one point, you want to drop history and just keep the last part of the queue.
+        This method allows you to unlink/drop the beginning of the queue to save up space.
+
         Returns the number of unlinked files
 
         """

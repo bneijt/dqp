@@ -43,7 +43,14 @@ def short_digester(digest_size: int = 8) -> str:
 
 
 short_digest: Callable[..., str] = short_digester()
-"""Calculate a string hash of the arguments"""
+"""Calculate a string hash of the arguments
+
+This method is the default digester returned by `short_digester`.
+
+All position and keyword arguments are hashed using `blake2b` into a small hexadecimal string.
+The implementation is not fast and uses `repr` to stringify the values, so this might not even
+be stable across runs for complex objects where `repr` only sees an object type and memory address.
+"""
 
 
 def cached_iter(
@@ -174,7 +181,18 @@ def load(location: Union[Path, str]) -> Optional[Any]:
 
 
 def tee(iterable: Iterator[T], location: Union[Path, str]) -> Iterator[T]:
-    """Also write iterator to disk at location"""
+    """Write iterator to disk at the specified location while yielding values.
+
+    Args:
+        iterable (Iterator[T]): The input iterator to be written to disk.
+        location (Union[Path, str]): The location where the iterator will be written.
+
+    Yields:
+        T: The values from the input iterator.
+
+    Raises:
+        ValueError: If the value in the iterator is a tuple (msgpack does not support tuples).
+    """
     global _CACHE_LOCKS
     if isinstance(location, str):
         location = Path(location)
@@ -216,7 +234,10 @@ def first(iterator: Optional[Union[Iterator[T], Iterable[T]]]) -> Optional[T]:
 
 
 def count_iter(iterator: Union[Iterator[T], Iterable[T]]) -> int:
-    """Return number of elements in iterator or iterable"""
+    """Return number of elements in iterator or iterable
+
+    Mostly useful for debugging. As this will consume the iterator, you should only use it on cached iterators.
+    """
     if isinstance(iterator, Iterator):
         return sum(1 for _ in iterator)
     else:
