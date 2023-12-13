@@ -43,7 +43,7 @@ import os
 import time
 from datetime import datetime, timezone
 from hashlib import blake2s
-from typing import Iterator, Optional, Tuple
+from typing import Callable, Iterator, Optional, Tuple
 
 import msgpack
 
@@ -217,7 +217,7 @@ class Project:
 
     def __init__(self, base_path: str, vars_prefix: str = ""):
         self.storage_folder = Folder(base_path)
-        self.closeables = []  # type: List[Callable[[], None]]
+        self.closeables: list[Callable[[], None]] = []
         self.vars_prefix = vars_prefix + "_" if len(vars_prefix) else vars_prefix
 
     def open_sink(self, name: str) -> Sink:

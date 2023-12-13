@@ -3,6 +3,7 @@
 This module supports transparently caching iterator values to disk using the `cached_iter` decorator,
 or simply storing and loading to and from disk explicitly.
 
+You can simply write an expensive iterator, decorate it with `cached_iter` and it will be cached to disk.
 """
 import tempfile
 import threading
