@@ -41,10 +41,10 @@ jobs:
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
       - run: poetry install
       - name: run pdoc
-        run: poetry run pdoc --output-directory public dqp
+        run: poetry run pdoc --output-directory docs dqp
       - uses: actions/upload-pages-artifact@v1
         with:
-          path: "public"
+          path: "docs"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
