@@ -8,13 +8,12 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11"
       - name: Install poetry
-        run: pip install poetry==1.1.7
+        run: pip install poetry==1.7.0
       - name: Poetry install
         run: poetry install
       - name: Build and publish
