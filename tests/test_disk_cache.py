@@ -25,6 +25,32 @@ def test_should_hash_arguments() -> None:
         assert list(repeater(1, value="a")) == [[0, "a"]]
 
 
+def test_should_accept_clear() -> None:
+    """The cache default hash should include function arguments."""
+
+    with TemporaryDirectory() as temp_dir:
+        value = "a"
+
+        @cached_iter(base_path=temp_dir)
+        def repeater() -> Iterator[tuple[int, str]]:
+            nonlocal value
+            for idx in range(2):
+                yield [idx, value]
+
+        assert list(repeater()) == [[0, "a"], [1, "a"]]
+        value = "b"
+        assert list(repeater()) == [
+            [0, "a"],
+            [1, "a"],
+        ], "Before clear cache, we should still see the cache"
+        repeater.cache_clear()
+        assert list(repeater()) == [
+            [0, "b"],
+            [1, "b"],
+        ], "After clear cache, we should see the new value"
+        assert list(repeater()) == [[0, "b"], [1, "b"]]
+
+
 def test_should_not_accept_tuple() -> None:
     """Msg pack cannot serialize tuples"""
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:

@@ -114,8 +114,8 @@ def cached_iter(
                 return scan(location)
 
         def cache_clear(*args, **kwds):
-            nonlocal get_storage_location
-            get_storage_location().unlink(missing_ok=True)
+            nonlocal get_storage_location, method_name
+            get_storage_location(method_name, args, kwds).unlink(missing_ok=True)
 
         _wrapper.cache_clear = cache_clear
 
