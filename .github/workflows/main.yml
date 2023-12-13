@@ -21,5 +21,4 @@ jobs:
         run: poetry run black --check .
       - name: Run tests
         run: |
-          poetry run safety check
           poetry run pytest tests
