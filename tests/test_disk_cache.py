@@ -5,7 +5,7 @@ from typing import Iterator
 
 import pytest
 
-from dqp.disk_cache import cached_iter, first, load, save, scan, tee
+from dqp.disk_cache import cached_iter, count_iter, first, load, save, scan, tee
 
 
 def test_should_hash_arguments() -> None:
@@ -90,3 +90,27 @@ def test_save_append() -> None:
         assert load(temp_file.name) == 1
         assert load(temp_file.name) == 1
         assert list(scan(temp_file.name)) == [1, 2]
+
+
+def test_tee():
+    with NamedTemporaryFile() as temp_file:
+        iterable = [1, 2, 3]
+        copy = []
+        for value in tee(iterable, temp_file.name):
+            copy.append(value)
+        assert copy == iterable, "Should see the same"
+        assert (
+            list(scan(temp_file.name)) == iterable
+        ), "Should have stored the same on disk"
+
+
+def test_first():
+    iterator = [1, 2, 3]
+    assert first(iterator) == 1
+    assert first(None) is None
+
+
+def test_count_iter():
+    iterator = [1, 2, 3]
+    assert count_iter(iterator) == 3
+    assert count_iter(None) == 0

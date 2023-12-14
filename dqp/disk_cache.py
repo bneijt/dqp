@@ -234,12 +234,14 @@ def first(iterator: Optional[Union[Iterator[T], Iterable[T]]]) -> Optional[T]:
         return next(iter(iterator), None)
 
 
-def count_iter(iterator: Union[Iterator[T], Iterable[T]]) -> int:
+def count_iter(iterator: Optional[Union[Iterator[T], Iterable[T]]]) -> int:
     """Return number of elements in iterator or iterable
 
     Mostly useful for debugging. As this will consume the iterator, you should only use it on cached iterators.
     """
-    if isinstance(iterator, Iterator):
+    if iterator is None:
+        return 0
+    elif isinstance(iterator, Iterator):
         return sum(1 for _ in iterator)
     else:
         return sum(1 for _ in iter(iterator))
